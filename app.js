@@ -5,10 +5,10 @@ function createStarHeadliner() {
 
     // Calculate responsive particle count based on screen size
     const isMobile = window.innerWidth < 768;
-    const baseParticleCount = isMobile ? 1300 : 1850;
+    const baseParticleCount = isMobile ? 1000 : 1250;
     const screenArea = window.innerWidth * window.innerHeight;
     const baseArea = 1920 * 1080; // Base for full HD screens
-    const densityFactor = Math.min(1, screenArea / baseArea);
+    const densityFactor = Math.min(1.5, Math.sqrt(screenArea / baseArea)); // Square root for better scaling
     const particleCount = Math.floor(baseParticleCount * densityFactor);
 
     // Create different types of stars with responsive counts
@@ -228,13 +228,26 @@ function setupMobileNav() {
         });
     });
 }
-
-// Initialize animations
+// Handle initial hash if present in URL
+function handleInitialHash() {
+    if (window.location.hash) {
+        const target = document.querySelector(window.location.hash);
+        if (target) {
+            setTimeout(() => {
+                scroll.scrollTo(target, {
+                    offset: -100,
+                    duration: 0
+                });
+            }, 100);
+        }
+    }
+}
 document.addEventListener("DOMContentLoaded", () => {
     initStarHeadliner();
     animateBackground();
     handleHeaderScroll();
     setupMobileNav();
+    handleInitialHash();
 
     // Animate services cards and gallery items on scroll
     const animatedElements = document.querySelectorAll(
@@ -278,6 +291,13 @@ document.addEventListener("DOMContentLoaded", () => {
         button.addEventListener("click", (e) => {
             e.preventDefault();
             openModal();
+            // Add shimmer animation
+            const modalContent = document.querySelector('.modal-content');
+            modalContent.classList.add('animate-shimmer');
+            // Remove class after animation completes
+            setTimeout(() => {
+                modalContent.classList.remove('animate-shimmer');
+            }, 800);
         });
     });
 
@@ -526,35 +546,49 @@ document.querySelectorAll(".services .service-card").forEach((card) => {
     });
 });
 
+
+window.addEventListener('resize', fixViewport);
+fixViewport();
 // Smooth Scroll Implementation
 document.addEventListener("DOMContentLoaded", () => {
+    // Initialize Locomotive Scroll
     // Initialize Locomotive Scroll
     const scroll = new LocomotiveScroll({
         el: document.querySelector("[data-scroll-container]"),
         smooth: true,
-        multiplier: 0.5, // Slower scroll speed
+        multiplier: 0.6,
         smartphone: {
-            smooth: false, // Disable on mobile
+            smooth: false,
         },
         tablet: {
-            smooth: false, // Disable on tablet
-        }
+            smooth: false,
+        },
+        // Add these options:
+        getDirection: true,
+        getSpeed: true,
+        inertia: 0.5
     });
 
-    // Custom slow scroll for nav links
+    // Handle anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
+
+            const targetId = this.getAttribute('href');
+            const target = document.querySelector(targetId);
+
             if (target) {
                 scroll.scrollTo(target, {
-                    duration: 1500, // 1.5 seconds duration
-                    offset: -100 // Account for header
+                    offset: -100, // Account for header
+                    duration: 1000
                 });
+
+                // Close mobile menu if open
+                const nav = document.getElementById("main-nav");
+                nav.classList.remove("active");
             }
         });
     });
-
     // Optional: Update scroll on window resize
     window.addEventListener("resize", () => {
         scroll.update();
